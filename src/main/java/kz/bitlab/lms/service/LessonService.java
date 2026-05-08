@@ -1,17 +1,19 @@
 package kz.bitlab.lms.service;
 
-import kz.bitlab.lms.dto.LessonDto;
+import kz.bitlab.lms.dto.LessonCreateRequest;
+import kz.bitlab.lms.dto.LessonResponse;
+import kz.bitlab.lms.dto.LessonUpdateRequest;
 
 import java.util.List;
 
 public interface LessonService {
-    List<LessonDto> getLessonsByChapterId(Long chapterId);
+    List<LessonResponse> getLessonsByChapterId(Long chapterId);
 
-    LessonDto getLessonById(Long id);
+    LessonResponse getLessonById(Long id);
 
-    LessonDto createLesson(LessonDto dto);
+    LessonResponse createLesson(LessonCreateRequest request);
 
-    LessonDto updateLesson(Long id, LessonDto dto);
+    LessonResponse updateLesson(Long id, LessonUpdateRequest request);
 
     void deleteLesson(Long id);
 }

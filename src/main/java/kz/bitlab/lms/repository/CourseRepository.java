@@ -1,6 +1,6 @@
 package kz.bitlab.lms.repository;
 
-import kz.bitlab.lms.entity.Course;
+import kz.bitlab.lms.model.Course;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -11,8 +11,6 @@ import java.util.Optional;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Long> {
-    boolean existsByName(String name);
-
     @EntityGraph(attributePaths = {"chapters"})
     Page<Course> findAll(Pageable pageable);
 

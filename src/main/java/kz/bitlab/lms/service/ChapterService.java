@@ -1,17 +1,19 @@
 package kz.bitlab.lms.service;
 
-import kz.bitlab.lms.dto.ChapterDto;
+import kz.bitlab.lms.dto.ChapterCreateRequest;
+import kz.bitlab.lms.dto.ChapterResponse;
+import kz.bitlab.lms.dto.ChapterUpdateRequest;
 
 import java.util.List;
 
 public interface ChapterService {
-    List<ChapterDto> getChaptersByCourseId(Long courseId);
+    List<ChapterResponse> getChaptersByCourseId(Long courseId);
 
-    ChapterDto getChapterById(Long id);
+    ChapterResponse getChapterById(Long id);
 
-    ChapterDto createChapter(ChapterDto dto);
+    ChapterResponse createChapter(ChapterCreateRequest request);
 
-    ChapterDto updateChapter(Long id, ChapterDto dto);
+    ChapterResponse updateChapter(Long id, ChapterUpdateRequest request);
 
     void deleteChapter(Long id);
 }

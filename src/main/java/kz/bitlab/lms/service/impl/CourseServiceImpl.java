@@ -1,20 +1,22 @@
 package kz.bitlab.lms.service.impl;
 
-import kz.bitlab.lms.dto.CourseDto;
-import kz.bitlab.lms.entity.Course;
-import kz.bitlab.lms.exception.ResourceNotFoundException;
+import kz.bitlab.lms.dto.CourseCreateRequest;
+import kz.bitlab.lms.dto.CourseResponse;
+import kz.bitlab.lms.dto.CourseUpdateRequest;
+import kz.bitlab.lms.enums.ExceptionStatus;
+import kz.bitlab.lms.exception.LmsException;
 import kz.bitlab.lms.mapper.CourseMapper;
+import kz.bitlab.lms.model.Course;
 import kz.bitlab.lms.repository.CourseRepository;
 import kz.bitlab.lms.service.CourseService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class CourseServiceImpl implements CourseService {
 
@@ -22,53 +24,37 @@ public class CourseServiceImpl implements CourseService {
     private final CourseMapper courseMapper;
 
     @Override
-    @Transactional(readOnly = true)
-    public Page<CourseDto> getAllCourses(Pageable pageable) {
-        log.debug("Fetching all courses with pagination");
+    public Page<CourseResponse> getAllCourses(Pageable pageable) {
         return courseRepository.findAll(pageable).map(courseMapper::toDto);
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public CourseDto getCourseById(Long id) {
-        log.debug("Fetching course by id: {}", id);
-        Course course = findCourseOrThrow(id);
+    public CourseResponse getCourseById(Long id) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new LmsException("Course not found with id: " + id, ExceptionStatus.COURSE_NOT_FOUND));
         return courseMapper.toDto(course);
     }
 
     @Override
-    @Transactional
-    public CourseDto createCourse(CourseDto dto) {
-        log.info("Creating new course with name: {}", dto.getName());
-        Course course = courseMapper.toEntity(dto);
+    public CourseResponse createCourse(CourseCreateRequest request) {
+        Course course = courseMapper.toEntity(request);
         Course saved = courseRepository.save(course);
-        log.info("Course created successfully with id: {}", saved.getId());
         return courseMapper.toDto(saved);
     }
 
     @Override
-    @Transactional
-    public CourseDto updateCourse(Long id, CourseDto dto) {
-        log.info("Updating course with id: {}", id);
-        Course existing = findCourseOrThrow(id);
-        courseMapper.updateEntityFromDto(dto, existing);
+    public CourseResponse updateCourse(Long id, CourseUpdateRequest request) {
+        Course existing = courseRepository.findById(id)
+                .orElseThrow(() -> new LmsException("Course not found with id: " + id, ExceptionStatus.COURSE_NOT_FOUND));
+        courseMapper.updateEntityFromDto(request, existing);
         Course updated = courseRepository.save(existing);
-        log.info("Course updated successfully: id={}", id);
         return courseMapper.toDto(updated);
     }
 
     @Override
-    @Transactional
     public void deleteCourse(Long id) {
-        log.info("Deleting course with id: {}", id);
-        findCourseOrThrow(id);
-        courseRepository.deleteById(id);
-        log.info("Course deleted successfully: id={}", id);
-    }
-
-    private Course findCourseOrThrow(Long id) {
-        return courseRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Course not found with id: " + id));
+        Course existing = courseRepository.findById(id)
+                .orElseThrow(() -> new LmsException("Course not found with id: " + id, ExceptionStatus.COURSE_NOT_FOUND));
+        courseRepository.delete(existing);
     }
 }

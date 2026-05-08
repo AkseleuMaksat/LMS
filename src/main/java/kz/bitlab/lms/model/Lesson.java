@@ -1,22 +1,18 @@
-package kz.bitlab.lms.entity;
+package kz.bitlab.lms.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.SuperBuilder;
+import lombok.*;
 
 @Entity
 @Table(name = "lessons")
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder
+@Builder
 public class Lesson extends BaseEntity {
 
-    @Column(name = "name", nullable = false, length = 255)
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "description", columnDefinition = "TEXT")
@@ -31,5 +27,4 @@ public class Lesson extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chapter_id", nullable = false)
     private Chapter chapter;
-
 }

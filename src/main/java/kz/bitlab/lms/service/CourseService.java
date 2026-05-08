@@ -1,17 +1,19 @@
 package kz.bitlab.lms.service;
 
-import kz.bitlab.lms.dto.CourseDto;
+import kz.bitlab.lms.dto.CourseCreateRequest;
+import kz.bitlab.lms.dto.CourseResponse;
+import kz.bitlab.lms.dto.CourseUpdateRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface CourseService {
-    Page<CourseDto> getAllCourses(Pageable pageable);
+    Page<CourseResponse> getAllCourses(Pageable pageable);
 
-    CourseDto getCourseById(Long id);
+    CourseResponse getCourseById(Long id);
 
-    CourseDto createCourse(CourseDto dto);
+    CourseResponse createCourse(CourseCreateRequest request);
 
-    CourseDto updateCourse(Long id, CourseDto dto);
+    CourseResponse updateCourse(Long id, CourseUpdateRequest request);
 
     void deleteCourse(Long id);
 }

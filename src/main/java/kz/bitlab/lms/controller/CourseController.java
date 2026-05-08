@@ -5,7 +5,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kz.bitlab.lms.dto.CourseDto;
+import kz.bitlab.lms.dto.CourseCreateRequest;
+import kz.bitlab.lms.dto.CourseResponse;
+import kz.bitlab.lms.dto.CourseUpdateRequest;
 import kz.bitlab.lms.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -23,11 +25,22 @@ public class CourseController {
 
     private final CourseService courseService;
 
+    @PostMapping
+    @Operation(summary = "Create a new course")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Course created"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
+    public ResponseEntity<CourseResponse> create(@Valid @RequestBody CourseCreateRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(courseService.createCourse(request));
+    }
+
     @GetMapping
     @Operation(summary = "Get all courses with pagination")
     @ApiResponse(responseCode = "200", description = "Page of courses")
-    public ResponseEntity<Page<CourseDto>> getAllCourses(@ParameterObject Pageable pageable) {
-        return ResponseEntity.ok(courseService.getAllCourses(pageable));
+    public ResponseEntity<Page<CourseResponse>> getAllCourses(@ParameterObject Pageable pageable) {
+        return ResponseEntity.status(HttpStatus.OK).body(courseService.getAllCourses(pageable));
     }
 
     @GetMapping("/{id}")
@@ -36,19 +49,8 @@ public class CourseController {
             @ApiResponse(responseCode = "200", description = "Course found"),
             @ApiResponse(responseCode = "404", description = "Course not found")
     })
-    public ResponseEntity<CourseDto> getCourseById(@PathVariable Long id) {
-        return ResponseEntity.ok(courseService.getCourseById(id));
-    }
-
-    @PostMapping
-    @Operation(summary = "Create a new course")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Course created"),
-            @ApiResponse(responseCode = "400", description = "Invalid input data")
-    })
-    public ResponseEntity<CourseDto> createCourse(@Valid @RequestBody CourseDto dto) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(courseService.createCourse(dto));
+    public ResponseEntity<CourseResponse> getCourseById(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(courseService.getCourseById(id));
     }
 
     @PutMapping("/{id}")
@@ -57,10 +59,9 @@ public class CourseController {
             @ApiResponse(responseCode = "200", description = "Course updated"),
             @ApiResponse(responseCode = "404", description = "Course not found")
     })
-    public ResponseEntity<CourseDto> updateCourse(
-            @PathVariable Long id,
-            @Valid @RequestBody CourseDto dto) {
-        return ResponseEntity.ok(courseService.updateCourse(id, dto));
+    public CourseResponse update(@PathVariable Long id,
+                                 @Valid @RequestBody CourseUpdateRequest req) {
+        return courseService.updateCourse(id, req);
     }
 
     @DeleteMapping("/{id}")
@@ -69,8 +70,7 @@ public class CourseController {
             @ApiResponse(responseCode = "204", description = "Course deleted"),
             @ApiResponse(responseCode = "404", description = "Course not found")
     })
-    public ResponseEntity<Void> deleteCourse(@PathVariable Long id) {
+    public void delete(@PathVariable Long id) {
         courseService.deleteCourse(id);
-        return ResponseEntity.noContent().build();
     }
 }

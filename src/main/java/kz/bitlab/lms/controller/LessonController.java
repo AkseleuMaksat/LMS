@@ -4,7 +4,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kz.bitlab.lms.dto.LessonDto;
+import kz.bitlab.lms.dto.LessonCreateRequest;
+import kz.bitlab.lms.dto.LessonResponse;
+import kz.bitlab.lms.dto.LessonUpdateRequest;
 import kz.bitlab.lms.service.LessonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
@@ -20,10 +22,17 @@ public class LessonController {
 
     private final LessonService lessonService;
 
+    @PostMapping
+    @Operation(summary = "Create a new lesson")
+    public ResponseEntity<LessonResponse> create(@Valid @RequestBody LessonCreateRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(lessonService.createLesson(request));
+    }
+
     @GetMapping("/by-chapter/{chapterId}")
     @Operation(summary = "Get all lessons for a chapter")
-    public ResponseEntity<List<LessonDto>> getLessonsByChapter(@PathVariable Long chapterId) {
-        return ResponseEntity.ok(lessonService.getLessonsByChapterId(chapterId));
+    public ResponseEntity<List<LessonResponse>> getLessonsByChapter(@PathVariable Long chapterId) {
+        return ResponseEntity.status(HttpStatus.OK).body(lessonService.getLessonsByChapterId(chapterId));
     }
 
     @GetMapping("/{id}")
@@ -32,29 +41,20 @@ public class LessonController {
             @ApiResponse(responseCode = "200", description = "Lesson found"),
             @ApiResponse(responseCode = "404", description = "Lesson not found")
     })
-    public ResponseEntity<LessonDto> getLessonById(@PathVariable Long id) {
-        return ResponseEntity.ok(lessonService.getLessonById(id));
-    }
-
-    @PostMapping
-    @Operation(summary = "Create a new lesson")
-    public ResponseEntity<LessonDto> createLesson(@Valid @RequestBody LessonDto dto) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(lessonService.createLesson(dto));
+    public ResponseEntity<LessonResponse> getLessonById(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(lessonService.getLessonById(id));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing lesson")
-    public ResponseEntity<LessonDto> updateLesson(
-            @PathVariable Long id,
-            @Valid @RequestBody LessonDto dto) {
-        return ResponseEntity.ok(lessonService.updateLesson(id, dto));
+    public LessonResponse update(@PathVariable Long id,
+                                 @Valid @RequestBody LessonUpdateRequest req) {
+        return lessonService.updateLesson(id, req);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a lesson by ID")
-    public ResponseEntity<Void> deleteLesson(@PathVariable Long id) {
+    public void delete(@PathVariable Long id) {
         lessonService.deleteLesson(id);
-        return ResponseEntity.noContent().build();
     }
 }

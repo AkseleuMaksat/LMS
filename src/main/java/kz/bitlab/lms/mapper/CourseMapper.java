@@ -1,29 +1,29 @@
 package kz.bitlab.lms.mapper;
 
-import kz.bitlab.lms.dto.CourseDto;
-import kz.bitlab.lms.entity.Course;
+import kz.bitlab.lms.dto.CourseCreateRequest;
+import kz.bitlab.lms.dto.CourseResponse;
+import kz.bitlab.lms.dto.CourseUpdateRequest;
+import kz.bitlab.lms.model.Course;
 import org.mapstruct.*;
+
 import java.util.List;
 
 @Mapper(
         componentModel = "spring",
         uses = {ChapterMapper.class},
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
 public interface CourseMapper {
 
-    CourseDto toDto(Course course);
+    CourseResponse toDto(Course course);
 
     @Mapping(target = "chapters", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    Course toEntity(CourseDto dto);
-
-    List<CourseDto> toDtoList(List<Course> courses);
+    Course toEntity(CourseCreateRequest request);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "chapters", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    void updateEntityFromDto(CourseDto dto, @MappingTarget Course entity);
+    void updateEntityFromDto(CourseUpdateRequest request, @MappingTarget Course entity);
+
+    List<CourseResponse> toDtoList(List<Course> courses);
 }

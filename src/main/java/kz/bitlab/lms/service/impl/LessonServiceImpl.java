@@ -1,23 +1,24 @@
-// LessonServiceImpl.java
 package kz.bitlab.lms.service.impl;
 
-import kz.bitlab.lms.dto.LessonDto;
-import kz.bitlab.lms.entity.Chapter;
-import kz.bitlab.lms.entity.Lesson;
-import kz.bitlab.lms.exception.ResourceNotFoundException;
+import kz.bitlab.lms.dto.LessonCreateRequest;
+import kz.bitlab.lms.dto.LessonResponse;
+import kz.bitlab.lms.dto.LessonUpdateRequest;
+import kz.bitlab.lms.enums.ExceptionStatus;
+import kz.bitlab.lms.exception.LmsException;
 import kz.bitlab.lms.mapper.LessonMapper;
+import kz.bitlab.lms.model.Chapter;
+import kz.bitlab.lms.model.Lesson;
 import kz.bitlab.lms.repository.ChapterRepository;
 import kz.bitlab.lms.repository.LessonRepository;
 import kz.bitlab.lms.service.LessonService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class LessonServiceImpl implements LessonService {
 
@@ -26,70 +27,49 @@ public class LessonServiceImpl implements LessonService {
     private final LessonMapper lessonMapper;
 
     @Override
-    @Transactional(readOnly = true)
-    public List<LessonDto> getLessonsByChapterId(Long chapterId) {
-        log.debug("Fetching lessons for chapter id: {}", chapterId);
-        verifyChapterExists(chapterId);
-        return lessonMapper.toDtoList(
-                lessonRepository.findByChapterIdOrderByOrder(chapterId));
+    public List<LessonResponse> getLessonsByChapterId(Long chapterId) {
+        if (!chapterRepository.existsById(chapterId)) {
+            throw new LmsException("Chapter not found with id: " + chapterId, ExceptionStatus.CHAPTER_NOT_FOUND);
+        }
+        return lessonMapper.toDtoList(lessonRepository.findByChapterIdOrderByOrder(chapterId));
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public LessonDto getLessonById(Long id) {
-        log.debug("Fetching lesson by id: {}", id);
-        return lessonMapper.toDto(findLessonOrThrow(id));
+    public LessonResponse getLessonById(Long id) {
+        Lesson lesson = lessonRepository.findById(id)
+                .orElseThrow(() -> new LmsException("Lesson not found with id: " + id, ExceptionStatus.LESSON_NOT_FOUND));
+        return lessonMapper.toDto(lesson);
     }
 
     @Override
-    @Transactional
-    public LessonDto createLesson(LessonDto dto) {
-        log.info("Creating lesson '{}' for chapter id: {}", dto.getName(), dto.getChapterId());
-        Chapter chapter = chapterRepository.findById(dto.getChapterId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Chapter not found with id: " + dto.getChapterId()));
-        Lesson lesson = lessonMapper.toEntity(dto);
+    public LessonResponse createLesson(LessonCreateRequest request) {
+        Chapter chapter = chapterRepository.findById(request.chapterId())
+                .orElseThrow(() -> new LmsException("Chapter not found with id: " + request.chapterId(), ExceptionStatus.CHAPTER_NOT_FOUND));
+        Lesson lesson = lessonMapper.toEntity(request);
         lesson.setChapter(chapter);
         Lesson saved = lessonRepository.save(lesson);
-        log.info("Lesson created successfully with id: {}", saved.getId());
         return lessonMapper.toDto(saved);
     }
 
     @Override
-    @Transactional
-    public LessonDto updateLesson(Long id, LessonDto dto) {
-        log.info("Updating lesson with id: {}", id);
-        Lesson existing = findLessonOrThrow(id);
-        lessonMapper.updateEntityFromDto(dto, existing);
-        if (dto.getChapterId() != null) {
-            Chapter chapter = chapterRepository.findById(dto.getChapterId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Chapter not found with id: " + dto.getChapterId()));
+    public LessonResponse updateLesson(Long id, LessonUpdateRequest request) {
+        Lesson existing = lessonRepository.findById(id)
+                .orElseThrow(() -> new LmsException("Lesson not found with id: " + id, ExceptionStatus.LESSON_NOT_FOUND));
+        lessonMapper.updateEntityFromDto(request, existing);
+
+        if (request.chapterId() != null) {
+            Chapter chapter = chapterRepository.findById(request.chapterId())
+                    .orElseThrow(() -> new LmsException("Chapter not found with id: " + request.chapterId(), ExceptionStatus.CHAPTER_NOT_FOUND));
             existing.setChapter(chapter);
         }
         Lesson updated = lessonRepository.save(existing);
-        log.info("Lesson updated successfully: id={}", id);
         return lessonMapper.toDto(updated);
     }
 
     @Override
-    @Transactional
     public void deleteLesson(Long id) {
-        log.info("Deleting lesson with id: {}", id);
-        findLessonOrThrow(id);
-        lessonRepository.deleteById(id);
-        log.info("Lesson deleted successfully: id={}", id);
-    }
-
-    private Lesson findLessonOrThrow(Long id) {
-        return lessonRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Lesson not found with id: " + id));
-    }
-
-    private void verifyChapterExists(Long chapterId) {
-        if (!chapterRepository.existsById(chapterId)) {
-            throw new ResourceNotFoundException("Chapter not found with id: " + chapterId);
-        }
+        Lesson existing = lessonRepository.findById(id)
+                .orElseThrow(() -> new LmsException("Lesson not found with id: " + id, ExceptionStatus.LESSON_NOT_FOUND));
+        lessonRepository.delete(existing);
     }
 }

@@ -1,27 +1,23 @@
 package kz.bitlab.lms.mapper;
 
-import kz.bitlab.lms.dto.LessonDto;
-import kz.bitlab.lms.entity.Lesson;
+import kz.bitlab.lms.dto.LessonCreateRequest;
+import kz.bitlab.lms.dto.LessonResponse;
+import kz.bitlab.lms.dto.LessonUpdateRequest;
+import kz.bitlab.lms.model.Lesson;
 import org.mapstruct.*;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface LessonMapper {
 
     @Mapping(source = "chapter.id", target = "chapterId")
-    LessonDto toDto(Lesson lesson);
+    LessonResponse toDto(Lesson lesson);
 
-    @Mapping(source = "chapterId", target = "chapter.id")
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    Lesson toEntity(LessonDto dto);
+    Lesson toEntity(LessonCreateRequest request);
 
-    List<LessonDto> toDtoList(List<Lesson> lessons);
+    List<LessonResponse> toDtoList(List<Lesson> lessons);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(source = "chapterId", target = "chapter.id")
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    void updateEntityFromDto(LessonDto dto, @MappingTarget Lesson entity);
+    void updateEntityFromDto(LessonUpdateRequest request, @MappingTarget Lesson entity);
 }

@@ -1,23 +1,21 @@
-package kz.bitlab.lms.entity;
+package kz.bitlab.lms.model;
 
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
 import java.util.ArrayList;
-
-import lombok.experimental.SuperBuilder;
+import java.util.List;
 
 @Entity
 @Table(name = "chapters")
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder
+@Builder
 public class Chapter extends BaseEntity {
 
-    @Column(name = "name", nullable = false, length = 255)
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "description", columnDefinition = "TEXT")
@@ -31,17 +29,6 @@ public class Chapter extends BaseEntity {
     private Course course;
 
     @Builder.Default
-    @OneToMany(mappedBy = "chapter", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "chapter", fetch = FetchType.LAZY)
     private List<Lesson> lessons = new ArrayList<>();
-
-    public void addLesson(Lesson lesson) {
-        lessons.add(lesson);
-        lesson.setChapter(this);
-    }
-
-    public void removeLesson(Lesson lesson) {
-        lessons.remove(lesson);
-        lesson.setChapter(null);
-    }
-
 }
