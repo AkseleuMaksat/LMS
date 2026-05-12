@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
     public void init() {
         this.keycloak = KeycloakBuilder.builder()
                 .serverUrl(authServerUrl)
-                .realm("master") // Master realm for admin login
+                .realm("master")
                 .clientId("admin-cli")
                 .username(adminUsername)
                 .password(adminPassword)
