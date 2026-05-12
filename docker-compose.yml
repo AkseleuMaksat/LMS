@@ -1,6 +1,45 @@
 version: '3.9'
 
 services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:21.0.1
+    container_name: lms-keycloak
+    environment:
+      - KC_DB=postgres
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_DB_URL=jdbc:postgresql://keycloak-db:5432/postgres
+      - KC_DB_USERNAME=postgres
+      - KC_DB_PASSWORD=postgres
+    ports:
+      - "8081:8080"
+      - "8443:8443"
+    volumes:
+      - ./src/main/resources/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+    command:
+      - "start-dev"
+      - --http-relative-path=/auth
+      - --import-realm
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+
+  keycloak-db:
+    image: postgres:16-alpine
+    container_name: akseleu-keycloak-db
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "2345:5432"
+    volumes:
+      - keycloak_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   postgres:
     image: postgres:16-alpine
     container_name: lms-postgres
@@ -32,4 +71,5 @@ services:
         condition: service_healthy
 
 volumes:
-  postgres_data:
+    postgres_data:
+    keycloak_pg_data:

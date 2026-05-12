@@ -1,6 +1,6 @@
 package kz.bitlab.lms.exception;
 
-import kz.bitlab.lms.enums.ExceptionStatus;
+import kz.bitlab.lms.exception.enums.ExceptionStatus;
 import lombok.Getter;
 
 @Getter

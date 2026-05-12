@@ -3,7 +3,7 @@ package kz.bitlab.lms.service.impl;
 import kz.bitlab.lms.dto.LessonCreateRequest;
 import kz.bitlab.lms.dto.LessonResponse;
 import kz.bitlab.lms.dto.LessonUpdateRequest;
-import kz.bitlab.lms.enums.ExceptionStatus;
+import kz.bitlab.lms.exception.enums.ExceptionStatus;
 import kz.bitlab.lms.exception.LmsException;
 import kz.bitlab.lms.mapper.LessonMapper;
 import kz.bitlab.lms.model.Chapter;

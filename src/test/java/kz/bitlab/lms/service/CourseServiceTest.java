@@ -1,9 +1,12 @@
 package kz.bitlab.lms.service;
 
-import kz.bitlab.lms.dto.CourseDto;
-import kz.bitlab.lms.entity.Course;
-import kz.bitlab.lms.exception.ResourceNotFoundException;
+import kz.bitlab.lms.dto.CourseCreateRequest;
+import kz.bitlab.lms.dto.CourseResponse;
+import kz.bitlab.lms.dto.CourseUpdateRequest;
+import kz.bitlab.lms.exception.LmsException;
+import kz.bitlab.lms.exception.enums.ExceptionStatus;
 import kz.bitlab.lms.mapper.CourseMapper;
+import kz.bitlab.lms.model.Course;
 import kz.bitlab.lms.repository.CourseRepository;
 import kz.bitlab.lms.service.impl.CourseServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +16,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,49 +41,49 @@ class CourseServiceTest {
     private CourseServiceImpl courseService;
 
     private Course course;
-    private CourseDto courseDto;
+    private CourseCreateRequest createRequest;
+    private CourseResponse courseResponse;
+    private CourseUpdateRequest updateRequest;
 
     @BeforeEach
     void setUp() {
         course = Course.builder()
-                .id(1L)
                 .name("Java Developer")
                 .description("Comprehensive Java course")
                 .build();
+        course.setId(1L);
 
-        courseDto = CourseDto.builder()
-                .id(1L)
-                .name("Java Developer")
-                .description("Comprehensive Java course")
-                .build();
+        createRequest = new CourseCreateRequest("Java Developer", "Comprehensive Java course");
+        courseResponse = new CourseResponse(1L, "Java Developer", "Comprehensive Java course", java.util.Collections.emptyList());
+        updateRequest = new CourseUpdateRequest("Java Dev Pro", "Updated course");
     }
 
     @Test
-    @DisplayName("getAllCourses - should return page of CourseDtos")
-    void getAllCourses_ReturnsPageOfDtos() {
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10);
-        org.springframework.data.domain.Page<Course> page = new org.springframework.data.domain.PageImpl<>(List.of(course));
+    @DisplayName("getAllCourses - should return page of CourseResponse")
+    void getAllCourses_ReturnsPageOfResponses() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Course> page = new PageImpl<>(List.of(course));
 
         when(courseRepository.findAll(pageable)).thenReturn(page);
-        when(courseMapper.toDto(course)).thenReturn(courseDto);
+        when(courseMapper.toDto(course)).thenReturn(courseResponse);
 
-        org.springframework.data.domain.Page<CourseDto> result = courseService.getAllCourses(pageable);
+        Page<CourseResponse> result = courseService.getAllCourses(pageable);
 
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getName()).isEqualTo("Java Developer");
+        assertThat(result.getContent().getFirst().name()).isEqualTo("Java Developer");
         verify(courseRepository, times(1)).findAll(pageable);
     }
 
     @Test
-    @DisplayName("getCourseById - should return CourseDto when course exists")
-    void getCourseById_WhenExists_ReturnsDto() {
+    @DisplayName("getCourseById - should return CourseResponse when course exists")
+    void getCourseById_WhenExists_ReturnsResponse() {
         when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
-        when(courseMapper.toDto(course)).thenReturn(courseDto);
+        when(courseMapper.toDto(course)).thenReturn(courseResponse);
 
-        CourseDto result = courseService.getCourseById(1L);
+        CourseResponse result = courseService.getCourseById(1L);
 
-        assertThat(result.getId()).isEqualTo(1L);
-        assertThat(result.getName()).isEqualTo("Java Developer");
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.name()).isEqualTo("Java Developer");
     }
 
     @Test
@@ -85,20 +92,40 @@ class CourseServiceTest {
         when(courseRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> courseService.getCourseById(99L))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("99");
+                .isInstanceOf(LmsException.class)
+                .hasMessageContaining("99")
+                .extracting("status")
+                .isEqualTo(ExceptionStatus.COURSE_NOT_FOUND);
     }
 
     @Test
-    @DisplayName("createCourse - should save and return CourseDto")
-    void createCourse_SavesAndReturnsDto() {
-        when(courseMapper.toEntity(courseDto)).thenReturn(course);
+    @DisplayName("createCourse - should save and return CourseResponse")
+    void createCourse_SavesAndReturnsResponse() {
+        when(courseMapper.toEntity(createRequest)).thenReturn(course);
         when(courseRepository.save(course)).thenReturn(course);
-        when(courseMapper.toDto(course)).thenReturn(courseDto);
+        when(courseMapper.toDto(course)).thenReturn(courseResponse);
 
-        CourseDto result = courseService.createCourse(courseDto);
+        CourseResponse result = courseService.createCourse(createRequest);
 
-        assertThat(result.getName()).isEqualTo("Java Developer");
+        assertThat(result.name()).isEqualTo("Java Developer");
+        verify(courseRepository, times(1)).save(course);
+    }
+
+    @Test
+    @DisplayName("updateCourse - should update and return CourseResponse")
+    void updateCourse_UpdatesAndReturnsResponse() {
+        Course updatedCourse = Course.builder().name("Java Dev Pro").description("Updated course").build();
+        updatedCourse.setId(1L);
+        CourseResponse updatedResponse = new CourseResponse(1L, "Java Dev Pro", "Updated course", java.util.Collections.emptyList());
+
+        when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
+        doNothing().when(courseMapper).updateEntityFromDto(updateRequest, course);
+        when(courseRepository.save(course)).thenReturn(updatedCourse);
+        when(courseMapper.toDto(updatedCourse)).thenReturn(updatedResponse);
+
+        CourseResponse result = courseService.updateCourse(1L, updateRequest);
+
+        assertThat(result.name()).isEqualTo("Java Dev Pro");
         verify(courseRepository, times(1)).save(course);
     }
 
@@ -109,7 +136,7 @@ class CourseServiceTest {
 
         courseService.deleteCourse(1L);
 
-        verify(courseRepository, times(1)).deleteById(1L);
+        verify(courseRepository, times(1)).delete(course);
     }
 
     @Test
@@ -118,8 +145,10 @@ class CourseServiceTest {
         when(courseRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> courseService.deleteCourse(99L))
-                .isInstanceOf(ResourceNotFoundException.class);
+                .isInstanceOf(LmsException.class)
+                .extracting("status")
+                .isEqualTo(ExceptionStatus.COURSE_NOT_FOUND);
 
-        verify(courseRepository, never()).deleteById(any());
+        verify(courseRepository, never()).delete(any());
     }
 }

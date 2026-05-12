@@ -3,7 +3,7 @@ package kz.bitlab.lms.service.impl;
 import kz.bitlab.lms.dto.ChapterCreateRequest;
 import kz.bitlab.lms.dto.ChapterResponse;
 import kz.bitlab.lms.dto.ChapterUpdateRequest;
-import kz.bitlab.lms.enums.ExceptionStatus;
+import kz.bitlab.lms.exception.enums.ExceptionStatus;
 import kz.bitlab.lms.exception.LmsException;
 import kz.bitlab.lms.mapper.ChapterMapper;
 import kz.bitlab.lms.model.Chapter;

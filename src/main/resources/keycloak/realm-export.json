@@ -1,0 +1,51 @@
+{
+  "realm": "lms-realm",
+  "enabled": true,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 604800,
+  "ssoSessionMaxLifespan": 604800,
+  "roles": {
+    "realm": [
+      {
+        "name": "ROLE_ADMIN"
+      },
+      {
+        "name": "ROLE_TEACHER"
+      },
+      {
+        "name": "ROLE_USER"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "lms-client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "secret",
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect"
+    }
+  ],
+  "users": [
+    {
+      "username": "lms-admin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "akseleu",
+      "lastName": "maksat",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "qwerty",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ROLE_ADMIN"
+      ]
+    }
+  ]
+}
