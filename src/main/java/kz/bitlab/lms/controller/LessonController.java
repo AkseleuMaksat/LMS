@@ -47,14 +47,16 @@ public class LessonController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing lesson")
-    public LessonResponse update(@PathVariable Long id,
-                                 @Valid @RequestBody LessonUpdateRequest req) {
-        return lessonService.updateLesson(id, req);
+    public ResponseEntity<LessonResponse> update(@PathVariable Long id,
+                                                 @Valid @RequestBody LessonUpdateRequest req) {
+        LessonResponse updated = lessonService.updateLesson(id, req);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a lesson by ID")
-    public void delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         lessonService.deleteLesson(id);
+        return ResponseEntity.noContent().build();
     }
 }

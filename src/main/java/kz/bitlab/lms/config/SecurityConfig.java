@@ -52,14 +52,20 @@ public class SecurityConfig {
     static class KeycloakRoleConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
         @Override
         public Collection<GrantedAuthority> convert(Jwt jwt) {
-            Map<String, Object> realmAccess = (Map<String, Object>) jwt.getClaims().get("realm_access");
-            if (realmAccess == null || realmAccess.isEmpty()) {
+            Object realmAccessObj = jwt.getClaims().get("realm_access");
+            if (!(realmAccessObj instanceof Map<?, ?> realmAccess) || realmAccess.isEmpty()) {
                 return List.of();
             }
 
-            List<String> roles = (List<String>) realmAccess.get("roles");
+            Object rolesObj = realmAccess.get("roles");
+            if (!(rolesObj instanceof List<?> roles)) {
+                return List.of();
+            }
+
             return roles.stream()
-                    .map(SimpleGrantedAuthority::new)
+                    .filter(String.class::isInstance)
+                    .map(String.class::cast)
+                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                     .collect(Collectors.toList());
         }
     }

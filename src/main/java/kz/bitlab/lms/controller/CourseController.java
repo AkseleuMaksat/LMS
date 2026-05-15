@@ -59,10 +59,12 @@ public class CourseController {
             @ApiResponse(responseCode = "200", description = "Course updated"),
             @ApiResponse(responseCode = "404", description = "Course not found")
     })
-    public CourseResponse update(@PathVariable Long id,
-                                 @Valid @RequestBody CourseUpdateRequest req) {
-        return courseService.updateCourse(id, req);
+    public ResponseEntity<CourseResponse> update(@PathVariable Long id,
+                                                 @Valid @RequestBody CourseUpdateRequest req) {
+        CourseResponse updated = courseService.updateCourse(id, req);
+        return ResponseEntity.ok(updated);
     }
+
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a course by ID")
@@ -70,7 +72,8 @@ public class CourseController {
             @ApiResponse(responseCode = "204", description = "Course deleted"),
             @ApiResponse(responseCode = "404", description = "Course not found")
     })
-    public void delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         courseService.deleteCourse(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -47,14 +47,16 @@ public class ChapterController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing chapter")
-    public ChapterResponse update(@PathVariable Long id,
-                                  @Valid @RequestBody ChapterUpdateRequest req) {
-        return chapterService.updateChapter(id, req);
+    public ResponseEntity<ChapterResponse> update(@PathVariable Long id,
+                                                  @Valid @RequestBody ChapterUpdateRequest req) {
+        ChapterResponse updated = chapterService.updateChapter(id, req);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a chapter by ID")
-    public void delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         chapterService.deleteChapter(id);
+        return ResponseEntity.noContent().build();
     }
 }
